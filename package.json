@@ -1,0 +1,33 @@
+{
+  "name": "task-queue",
+  "version": "1.0.0",
+  "description": "nodejs消息队列",
+  "main": "index.js",
+  "scripts": {
+    "build": "pnpm run build:babel:js",
+    "build:babel:js": "pnpm run tsc:build && pnpm run babel:mjs &&  pnpm run babel:cjs",
+    "babel:mjs": "babel dist/esm --out-dir dist/esm",
+    "babel:cjs": "babel dist/common --out-dir dist/common",
+    "tsc:build": "rm -fr dist && tsc -p tsconfig.json && tsc -p tsconfig.es.json",
+    "example": "pnpm build && node example",
+    "example:hot": "pnpm build && nodemon example",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://gitee.com/DieHunter/task-queue.git"
+  },
+  "keywords": [
+    "queue",
+    "task",
+    "task-queue"
+  ],
+  "author": "DieHunter",
+  "license": "ISC",
+  "dependencies": {
+    "event-message-center": "^1.0.3"
+  }
+}
