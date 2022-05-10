@@ -13,9 +13,6 @@
     "example:hot": "pnpm build && nodemon example",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "devDependencies": {
-    "babel-cli": "^6.26.0"
-  },
   "repository": {
     "type": "git",
     "url": "https://gitee.com/DieHunter/task-queue.git"
@@ -28,6 +25,6 @@
   "author": "DieHunter",
   "license": "ISC",
   "dependencies": {
-    "event-message-center": "^1.0.3"
+    "event-message-center": "^1.0.8"
   }
 }

@@ -3,15 +3,15 @@
         "allowSyntheticDefaultImports": true,
         "sourceMap": false,
         "declaration": true,
-        "target": "ES5",
-        "module": "commonjs",
+        "target": "esnext",
+        "module": "esnext",
         "moduleResolution": "node",
         "esModuleInterop": true,
         "noEmitOnError": true,
         "noFallthroughCasesInSwitch": true,
         "noImplicitAny": false,
         "noImplicitReturns": true,
-        "noResolve": true,
+        // "noResolve": true,
         "removeComments": true,
         "strictNullChecks": false,
         "inlineSourceMap": false,
@@ -28,10 +28,5 @@
             "ES2018.promise",
             "ES2015.iterable"
         ]
-    },
-    "include": [
-        "src",
-        "global.d.ts",
-        "node_modules"
-    ]
+    }
 }
