@@ -1,50 +1,50 @@
-import { ITaskQueue, IQueueList, ICount, IQueue } from "./type"
+import { ITaskQueue, IQueueList, ICount, IQueue, IState } from "./type"
 // import { messageCenter } from "event-message-center"
-const messageCenter = require("event-message-center")
+const { MessageCenter } = require("event-message-center")
 
 class TaskQueue implements ITaskQueue {
     maxLen: number
     count: number
-    queue: IQueueList
-    temp: IQueueList
+    queues: IQueueList
+    state: IState
     constructor({ maxLen }) {
         this.maxLen = maxLen
         this.clear()
-        // console.log(messageCenter)
-    }
-    pushTemp = (queue) => {
-        return this.push(queue, this.temp)
+        console.log(MessageCenter)
     }
 
-    push = (queue: IQueue | IQueueList, queues: IQueueList = this.queue) => {
+    push = (queue: IQueue | IQueueList) => {
         this.checkHandler(queue)
         if (queue instanceof Array) {
             queue = queue.map(i => {
                 i.count = ++this.count
                 return i
             })
-            queues = queues.concat(queue)
+            this.queues = this.queues.concat(queue)
         } else if (typeof queue === "object") {
-            queues.push({ count: ++this.count, ...queue })
+            this.queues.push({ count: ++this.count, ...queue })
         }
-        return queues
     }
     unshift = () => {
-        this.queue.unshift()
-        return this.queue
+        this.queues.unshift()
     }
-    run = () => {
-        const { promise, resolve, reject } = this.defer()
-        return Promise.all(this.queue.map(i => i.fn))
+    run = async () => {
+        const queues = this.queues.length > this.maxLen ? this.queues.splice(0, this.maxLen - 1) : this.queues
+        console.log(this.queues.length, queues)
+        try {
+            const res = await Promise.all(queues.map(i => i.fn))
+        } catch (error) {
+
+        }
     }
     remove = (count?: ICount) => {
-        count && (this.queue = this.queue.filter((i) => i.count !== count))
+        count && (this.queues = this.queues.filter((i) => i.count !== count))
         !count && this.clear()
-        return this.queue
     }
     clear = () => {
         this.count = 0
-        this.queue = []
+        this.queues = []
+        this.state = "fulfilled"
     }
     private defer() {
         let resolve, reject
@@ -81,8 +81,17 @@ const syncFn = () => {
         setTimeout(res, 1000);
     });
 };
+const createFnList = (length) => {
+    let arr = []
+    while (length--) {
+        arr.push({ fn: syncFn })
+    }
+    return arr
+}
 const taskQueue = new TaskQueue({ maxLen: 3 })
-const list = taskQueue.pushTemp([{ fn: syncFn }, { fn: syncFn }, { fn: syncFn }, { fn: syncFn }, { fn: syncFn }, { fn: syncFn }])
-console.log(list)
+const list = taskQueue.push(createFnList(10))
+taskQueue.run().then(console.log)
+// console.log(list)
+
 
 

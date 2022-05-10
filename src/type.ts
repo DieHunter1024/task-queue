@@ -1,3 +1,5 @@
+import { type } from "os"
+
 export type ICount = number | string
 export interface IQueue {
     fn: Function
@@ -5,15 +7,15 @@ export interface IQueue {
     name?: string
 }
 export type IQueueList = IQueue[]
+export type IState = "pending" | "fulfilled" | "rejected"
 export type ITaskQueue = {
     readonly maxLen: number
     count: number
-    queue: IQueueList
-    temp: IQueueList
-    pushTemp: (queue: IQueue | IQueueList) => IQueueList
-    push: (queue: IQueue | IQueueList, queues: IQueueList) => IQueueList
-    unshift: () => IQueueList
+    queues: IQueueList
+    state: IState
+    push: (queue: IQueue | IQueueList) => void
+    unshift: () => void
     run: () => Promise<Function[] | void>
-    remove: (count?: ICount) => IQueueList
+    remove: (count?: ICount) => void
     clear: () => void
 }
