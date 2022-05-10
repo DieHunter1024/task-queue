@@ -54,7 +54,7 @@ var TaskQueue = /** @class */ (function () {
         };
         this.maxLen = maxLen;
         this.clear();
-        console.log(messageCenter);
+        // console.log(messageCenter)
     }
     TaskQueue.prototype.defer = function () {
         var resolve, reject;

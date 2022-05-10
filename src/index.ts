@@ -10,11 +10,12 @@ class TaskQueue implements ITaskQueue {
     constructor({ maxLen }) {
         this.maxLen = maxLen
         this.clear()
-        console.log(messageCenter)
+        // console.log(messageCenter)
     }
     pushTemp = (queue) => {
         return this.push(queue, this.temp)
     }
+
     push = (queue: IQueue | IQueueList, queues: IQueueList = this.queue) => {
         this.checkHandler(queue)
         if (queue instanceof Array) {
