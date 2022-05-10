@@ -2,13 +2,16 @@
   "name": "task-queue",
   "version": "1.0.0",
   "description": "nodejs消息队列",
-  "main": "index.js",
+  "main": "./dist/common/index.js",
+  "types": "./dist/common/index.d.ts",
+  "module": "./dist/esm/index.js",
   "scripts": {
-    "build": "pnpm run build:babel:js",
-    "build:babel:js": "pnpm run tsc:build && pnpm run babel:mjs &&  pnpm run babel:cjs",
+    "start": "pnpm build && node dist/common/index.js",
+    "build": "pnpm run tsc:build && pnpm run babel:mjs &&  pnpm run babel:cjs",
+    "tsc:build": "rm -fr dist && tsc -p tsconfig.json && tsc -p tsconfig.es.json",
+    "publish": "pnpm run build && pnpm publish",
     "babel:mjs": "babel dist/esm --out-dir dist/esm",
     "babel:cjs": "babel dist/common --out-dir dist/common",
-    "tsc:build": "rm -fr dist && tsc -p tsconfig.json && tsc -p tsconfig.es.json",
     "example": "pnpm build && node example",
     "example:hot": "pnpm build && nodemon example",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -25,6 +28,10 @@
   "author": "DieHunter",
   "license": "ISC",
   "dependencies": {
-    "event-message-center": "^1.0.8"
+    "event-message-center": "^1.0.9"
+  },
+  "devDependencies": {
+    "@types/node": "^17.0.31",
+    "babel-cli": "^6.26.0"
   }
 }

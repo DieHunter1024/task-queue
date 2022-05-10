@@ -4,11 +4,16 @@ export interface IQueue {
     count: ICount
     name?: string
 }
+export type IQueueList = IQueue[]
 export type ITaskQueue = {
     readonly maxLen: number
-    queue: IQueue[]
-    push: (queue: IQueue) => IQueue
-    unshift: (length?: number) => IQueue
-    run: () => IQueue
-    remove: (count?: ICount) => IQueue
+    count: number
+    queue: IQueueList
+    temp: IQueueList
+    pushTemp: (queue: IQueue | IQueueList) => IQueueList
+    push: (queue: IQueue | IQueueList, queues: IQueueList) => IQueueList
+    unshift: () => IQueueList
+    run: () => Promise<Function[] | void>
+    remove: (count?: ICount) => IQueueList
+    clear: () => void
 }
