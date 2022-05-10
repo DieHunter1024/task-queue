@@ -81,6 +81,7 @@ const syncFn = () => {
     });
 };
 const taskQueue = new TaskQueue({ maxLen: 3 })
-const list = taskQueue.pushTemp([{ fn: syncFn }])
+const list = taskQueue.pushTemp([{ fn: syncFn }, { fn: syncFn }, { fn: syncFn }, { fn: syncFn }, { fn: syncFn }, { fn: syncFn }])
+console.log(list)
 
 
