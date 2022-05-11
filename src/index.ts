@@ -38,6 +38,7 @@ class TaskQueue implements ITaskQueue {
         this.state = "pending"
         try {
             const res = await Promise.all(queues.map(async i => await i.fn()))
+            console.log(res)
             this.state = "fulfilled"
             this.messageCenter.emit("run:handler", res)
         } catch (error) {
@@ -63,7 +64,7 @@ class TaskQueue implements ITaskQueue {
         if (!queue) {
             throw new ReferenceError('queue is not defined')
         }
-        if (!(queue instanceof Array) || typeof queue !== "object") {
+        if (!(queue instanceof Array) && typeof queue !== "object") {
             throw new TypeError(`queue should be an object or an array`);
         }
         const noFn = i => !i.fn || typeof i.fn !== "function"
@@ -85,9 +86,9 @@ const defer = () => {
         resolve, reject
     }
 }
-const syncFn = (r: any) => {
+const syncFn = () => {
     const { resolve, promise } = defer()
-    setTimeout(resolve.bind(this, r), 5000);
+    setTimeout(resolve.bind(this, '111'), 1000);
     return promise
 };
 
@@ -99,9 +100,10 @@ const createFnList = (length) => {
     return arr
 }
 const taskQueue = new TaskQueue({ maxLen: 3 })
-// taskQueue.push(createFnList(10))
+taskQueue.push({ fn: syncFn })
+taskQueue.push({ fn: syncFn })
 async function init() {
-    await syncFn('bbb')
+    await syncFn()
     console.log('aaa')
 }
 init()

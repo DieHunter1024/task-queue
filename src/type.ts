@@ -3,7 +3,7 @@ import { type } from "os"
 export type ICount = number | string
 export interface IQueue {
     fn: Function
-    count: ICount
+    count?: ICount
     name?: string
 }
 export type IQueueList = IQueue[]
