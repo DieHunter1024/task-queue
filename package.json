@@ -7,8 +7,8 @@
   "module": "./dist/esm/index.js",
   "scripts": {
     "debug": "start cmd /k pnpm run build:hot & pnpm run node:hot",
-    "node:hot": "nodemon ./src/index.js",
-    "build:hot": "tsc src/index.ts -w",
+    "node:hot": "nodemon ./dist/common/index.js",
+    "build:hot": "tsc -p tsconfig.json -w",
     "build": "pnpm run tsc:build && pnpm run babel:mjs &&  pnpm run babel:cjs",
     "tsc:build": "rm -fr dist && tsc -p tsconfig.json && tsc -p tsconfig.es.json",
     "publish": "pnpm run build && pnpm publish",
@@ -30,7 +30,7 @@
   "author": "DieHunter",
   "license": "ISC",
   "dependencies": {
-    "event-message-center": "^1.0.9"
+    "event-message-center": "^1.0.12"
   },
   "devDependencies": {
     "@types/node": "^17.0.31",

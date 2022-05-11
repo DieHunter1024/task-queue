@@ -14,7 +14,7 @@ export type ITaskQueue = {
     queues: IQueueList
     state: IState
     push: (queue: IQueue | IQueueList) => void
-    unshift: () => void
+    unshift: (length: number) => IQueueList
     run: () => Promise<Function[] | void>
     remove: (count?: ICount) => void
     clear: () => void

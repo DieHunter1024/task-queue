@@ -1,18 +1,21 @@
+import { decoratorMessageCenter, MessageCenter } from "event-message-center"
 import { ITaskQueue, IQueueList, ICount, IQueue, IState } from "./type"
-// import { messageCenter } from "event-message-center"
-const { MessageCenter } = require("event-message-center")
-
+@decoratorMessageCenter
 class TaskQueue implements ITaskQueue {
     maxLen: number
     count: number
     queues: IQueueList
     state: IState
+    messageCenter: MessageCenter
     constructor({ maxLen }) {
         this.maxLen = maxLen
         this.clear()
-        console.log(MessageCenter)
+        this.initEvent()
     }
-
+    initEvent = () => {
+        this.messageCenter.on("push:handler", this.run)
+        this.messageCenter.on("run:handler", this.run)
+    }
     push = (queue: IQueue | IQueueList) => {
         this.checkHandler(queue)
         if (queue instanceof Array) {
@@ -24,17 +27,22 @@ class TaskQueue implements ITaskQueue {
         } else if (typeof queue === "object") {
             this.queues.push({ count: ++this.count, ...queue })
         }
+        this.messageCenter.emit("push:handler", null)
     }
-    unshift = () => {
-        this.queues.unshift()
+    unshift = (length) => {
+        return this.queues.splice(0, length)
     }
     run = async () => {
-        const queues = this.queues.length > this.maxLen ? this.queues.splice(0, this.maxLen - 1) : this.queues
-        console.log(this.queues.length, queues)
+        if (this.state === 'pending' || this.queues.length === 0) return
+        const queues = this.unshift(this.maxLen)
+        this.state = "pending"
         try {
-            const res = await Promise.all(queues.map(i => i.fn))
+            const res = await Promise.all(queues.map(async i => await i.fn()))
+            this.state = "fulfilled"
+            this.messageCenter.emit("run:handler", res)
         } catch (error) {
-
+            this.state = "fulfilled"
+            this.messageCenter.emit("run:handler", error)
         }
     }
     remove = (count?: ICount) => {
@@ -45,16 +53,7 @@ class TaskQueue implements ITaskQueue {
         this.count = 0
         this.queues = []
         this.state = "fulfilled"
-    }
-    private defer() {
-        let resolve, reject
-        return {
-            promise: new Promise<void>((_resolve, _reject) => {
-                resolve = _resolve
-                reject = _reject
-            }),
-            resolve, reject
-        }
+        this.messageCenter.clear()
     }
     /**
      * 检查参数是否符合标准
@@ -76,11 +75,22 @@ class TaskQueue implements ITaskQueue {
         }
     }
 }
-const syncFn = () => {
-    return new Promise((res) => {
-        setTimeout(res, 1000);
-    });
+const defer = () => {
+    let resolve, reject
+    return {
+        promise: new Promise<void>((_resolve, _reject) => {
+            resolve = _resolve
+            reject = _reject
+        }),
+        resolve, reject
+    }
+}
+const syncFn = (r: any) => {
+    const { resolve, promise } = defer()
+    setTimeout(resolve.bind(this, r), 5000);
+    return promise
 };
+
 const createFnList = (length) => {
     let arr = []
     while (length--) {
@@ -89,8 +99,19 @@ const createFnList = (length) => {
     return arr
 }
 const taskQueue = new TaskQueue({ maxLen: 3 })
-const list = taskQueue.push(createFnList(10))
-taskQueue.run().then(console.log)
+// taskQueue.push(createFnList(10))
+async function init() {
+    await syncFn('bbb')
+    console.log('aaa')
+}
+init()
+// setTimeout(() => {
+//     taskQueue.push(createFnList(20))
+// }, 1000)
+// setTimeout(() => {
+//     taskQueue.push(createFnList(20))
+// }, 1000)
+// taskQueue.run().then(console.log)
 // console.log(list)
 
 

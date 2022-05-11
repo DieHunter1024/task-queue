@@ -10,6 +10,12 @@ var __assign = (this && this.__assign) || function () {
     };
     return __assign.apply(this, arguments);
 };
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -47,8 +53,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
+var event_message_center_1 = require("event-message-center");
 // import { messageCenter } from "event-message-center"
-var MessageCenter = require("event-message-center").MessageCenter;
 var TaskQueue = /** @class */ (function () {
     function TaskQueue(_a) {
         var maxLen = _a.maxLen;
@@ -66,15 +72,15 @@ var TaskQueue = /** @class */ (function () {
                 _this.queues.push(__assign({ count: ++_this.count }, queue));
             }
         };
-        this.unshift = function () {
-            _this.queues.unshift();
+        this.unshift = function (length) {
+            return _this.queues.splice(0, length);
         };
         this.run = function () { return __awaiter(_this, void 0, void 0, function () {
             var queues, res, error_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        queues = this.queues.length > this.maxLen ? this.queues.splice(0, this.maxLen - 1) : this.queues;
+                        queues = this.queues.length > this.maxLen ? this.unshift(this.maxLen - 1) : this.queues;
                         console.log(this.queues.length, queues);
                         _a.label = 1;
                     case 1:
@@ -101,7 +107,7 @@ var TaskQueue = /** @class */ (function () {
         };
         this.maxLen = maxLen;
         this.clear();
-        console.log(MessageCenter);
+        console.log(this.messageCenter);
     }
     TaskQueue.prototype.defer = function () {
         var resolve, reject;
@@ -137,6 +143,9 @@ var TaskQueue = /** @class */ (function () {
                 throw new Error('queue should have fn');
         }
     };
+    TaskQueue = __decorate([
+        event_message_center_1.decoratorMessageCenter
+    ], TaskQueue);
     return TaskQueue;
 }());
 var syncFn = function () {
