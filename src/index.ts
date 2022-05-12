@@ -1,9 +1,8 @@
 import { decoratorMessageCenter, MessageCenter } from "event-message-center"
-import { ITaskQueue, IQueueList, ICount, IQueue, IState } from "./type"
+import { ITaskQueue, IQueueList, IQueues, IState } from "./type"
 @decoratorMessageCenter
 class TaskQueue implements ITaskQueue {
     maxLen: number
-    count: number
     queues: IQueueList
     state: IState
     messageCenter: MessageCenter
@@ -14,66 +13,55 @@ class TaskQueue implements ITaskQueue {
     }
     initEvent = () => {
         this.messageCenter.on("push:handler", this.run)
-        this.messageCenter.on("run:handler", this.run)
+        this.messageCenter.on("run:success:handler", this.run)
+        this.messageCenter.on("run:error:handler", this.run)
     }
-    push = (queue: IQueue | IQueueList) => {
+    push = (queue: IQueues) => {
         this.checkHandler(queue)
-        if (queue instanceof Array) {
-            queue = queue.map(i => {
-                i.count = ++this.count
-                return i
-            })
-            this.queues = this.queues.concat(queue)
-        } else if (typeof queue === "object") {
-            this.queues.push({ count: ++this.count, ...queue })
-        }
+        this.queues = this.queues.concat(queue.children)
         this.messageCenter.emit("push:handler", null)
     }
     unshift = (length) => {
         return this.queues.splice(0, length)
     }
     run = async () => {
-        if (this.state === 'pending' || this.queues.length === 0) return
+        if (this.state === 'pending') return void 0
+        if (this.queues.length === 0) return this.state = "idle"
         const queues = this.unshift(this.maxLen)
         this.state = "pending"
         try {
-            const res = await Promise.all(queues.map(async i => await i.fn()))
-            console.log(res)
+            const res = await Promise.all(queues.map(async i => await i.fn(i.params)))
+            console.log(res, queues)
             this.state = "fulfilled"
-            this.messageCenter.emit("run:handler", res)
+            return this.messageCenter.emit("run:success:handler", res)
         } catch (error) {
-            this.state = "fulfilled"
-            this.messageCenter.emit("run:handler", error)
+            this.state = "rejected"
+            return this.messageCenter.emit("run:error:handler", error)
         }
     }
-    remove = (count?: ICount) => {
-        count && (this.queues = this.queues.filter((i) => i.count !== count))
-        !count && this.clear()
-    }
     clear = () => {
-        this.count = 0
         this.queues = []
-        this.state = "fulfilled"
+        this.state = "idle"
         this.messageCenter.clear()
     }
     /**
      * 检查参数是否符合标准
      * @param queue 队列或队列集合
      */
-    private checkHandler(queue: IQueue | IQueueList) {
+    private checkHandler(queue: IQueues) {
+        console.log(queue)
         if (!queue) {
             throw new ReferenceError('queue is not defined')
         }
-        if (!(queue instanceof Array) && typeof queue !== "object") {
-            throw new TypeError(`queue should be an object or an array`);
+        if (!(queue.children instanceof Array) || typeof queue !== "object") {
+            throw new TypeError(`queue should be an object and queue.children should be an array`);
         }
         const noFn = i => !i.fn || typeof i.fn !== "function"
-        if (queue instanceof Array) {
-            if (queue?.length === 0) throw new Error('queue.length can not be 0')
-            if (queue.find((i) => noFn(i))) throw new Error('queueList should have fn')
-        } else if (typeof queue === "object") {
-            if (noFn(queue)) throw new Error('queue should have fn')
-        }
+        if (queue.children?.length === 0) throw new Error('queue.children.length can not be 0')
+        if (queue.children?.find((i) => noFn(i))) throw new Error('queueList should have fn')
+    }
+    private fixStr(str) {
+        return `@~&$${str}`
     }
 }
 const defer = () => {
@@ -86,27 +74,24 @@ const defer = () => {
         resolve, reject
     }
 }
-const syncFn = () => {
+const syncFn = (args) => {
     const { resolve, promise } = defer()
-    setTimeout(resolve.bind(this, '111'), 1000);
+    setTimeout(() => {
+        resolve(args)
+    }, 1000);
     return promise
 };
 
 const createFnList = (length) => {
-    let arr = []
+    const task1 = { name: 'task1', children: [] }
     while (length--) {
-        arr.push({ fn: syncFn })
+        task1.children.push({ fn: syncFn, params: 'args' })
     }
-    return arr
+    return task1
 }
 const taskQueue = new TaskQueue({ maxLen: 3 })
-taskQueue.push({ fn: syncFn })
-taskQueue.push({ fn: syncFn })
-async function init() {
-    await syncFn()
-    console.log('aaa')
-}
-init()
+const task = createFnList(10)
+taskQueue.push(task)
 // setTimeout(() => {
 //     taskQueue.push(createFnList(20))
 // }, 1000)
