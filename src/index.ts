@@ -3,23 +3,35 @@ import {
     ITaskQueue, IQueueList, IQueues, IState, IQueueTemp
 } from "./type"
 @decoratorMessageCenter
-class TaskQueue implements ITaskQueue {
+export class TaskQueue implements ITaskQueue {
     readonly fix: string = `@~&$`
-    maxLen: number
+    readonly messageCenter: MessageCenter
+    readonly maxLen: number
     queues: IQueueList
     queueTemp: IQueueTemp
     state: IState
-    messageCenter: MessageCenter
+    /**
+     * @param opts: {maxLen:并发峰值} 削峰
+     */
     constructor({ maxLen }) {
         this.maxLen = maxLen
         this.clear()
         this.init()
     }
+    /**
+     * 初始化
+     */
     private init = () => {
         this.messageCenter.on("push:handler", this.run)
         this.messageCenter.on("run:success:handler", this.run)
+        this.messageCenter.on("run:success:handler", this.finish)
         this.messageCenter.on("run:error:handler", this.run)
     }
+    /**
+     * 进入队列
+     * @param queue: IQueues 单个队列
+     * @returns promise: Promise<void> 当前队列执行结束的异步操作
+     */
     push = (queue: IQueues) => {
         this.checkHandler(queue)
         const { resolve, reject, promise } = this.defer()
@@ -30,9 +42,19 @@ class TaskQueue implements ITaskQueue {
         this.messageCenter.on(queueName, resolve)
         return promise
     }
+    /**
+     * 移出队列
+     * @param length 移出数量
+     * @returns queues 移出的队列
+     */
     unshift = (length) => {
         return this.queues.splice(0, length)
     }
+    /**
+     * 异步执行队列:函数的思路是无限递归,通过当前队列状态和数量判断是否执行
+     * @param reject 异常函数
+     * @returns void 0
+     */
     run = async (reject) => {
         if (this.stateProxy() === 'pending') return void 0
         if (this.queues.length === 0) return this.stateProxy("idle")
@@ -40,22 +62,28 @@ class TaskQueue implements ITaskQueue {
         const queues = this.unshift(this.maxLen)
         try {
             const res = await Promise.all(queues.map(async i => await i.defer(i.params)))
-            this.finish(res, queues)
             this.stateProxy("fulfilled")
-            return this.messageCenter.emit("run:success:handler", res)
+            return this.messageCenter.emit("run:success:handler", { res, queues })
         } catch (error) {
             this.stateProxy("rejected")
-            reject && reject(error)
+            reject && typeof reject === "function" && reject(error)
             return this.messageCenter.emit("run:error:handler", error)
         }
     }
+    /**
+     * 初始化整个队列，清除所有数据
+     */
     clear = () => {
         this.queues = []
         this.queueTemp = {}
         this.stateProxy("idle")
         this.messageCenter.clear()
     }
-    private finish = (res, queues) => {
+    /**
+     * 处理每次队列执行完成后的数据
+     * @param data { res, queues } 运行结束后的返回值及削峰后的初始队列，一一对应
+     */
+    private finish = ({ res, queues }) => {
         const { queueTemp } = this
         queues.forEach((it, i) => {
             const item = queueTemp[it.name]
@@ -66,7 +94,11 @@ class TaskQueue implements ITaskQueue {
             }
         });
     }
-
+    /**
+     * 设置、获取当前队列的状态
+     * @param state 队列状态，有值就修改当前状态，无值就获取当前状态
+     * @returns srate 队列的状态
+     */
     private stateProxy = (state?: IState) => {
         state && (this.state = state)
         return this.state
@@ -85,10 +117,18 @@ class TaskQueue implements ITaskQueue {
         const noFn = i => !i.defer || typeof i.defer !== "function"
         if (queue.children?.length === 0) throw new Error('queue.children.length can not be 0')
         if (queue.children?.find((i) => noFn(i))) throw new Error('queueList should have defer')
-    }
+    }/**
+     * 混淆字符串
+     * @param str 需要混淆的字符 
+     * @returns 混淆产物
+     */
     private fixStr(str) {
         return `${this.fix}${str}`
     }
+    /**
+     * 优化Promise，避免Promise嵌套
+     * @returns {Promise,resolve,reject}
+     */
     private defer = () => {
         let resolve, reject
         return {
@@ -100,43 +140,17 @@ class TaskQueue implements ITaskQueue {
         }
     }
 }
-const syncFn = (args) => {
-    return new Promise<void>((resolve, reject) => {
-        setTimeout(() => {
-            resolve(args)
-        }, 1000);
-    })
-};
-
-const createFnList = (length, name) => {
-    const task = {
-        name, children: []
+/**
+ * 装饰器用法
+ * @param opts  同TaskQueue中constructor
+ * @returns 混入类原型中
+ */
+export const decoratorTaskQueue = (opts) => {
+    return (proto) => {
+        if (!proto.prototype.taskQueue) {
+            proto.prototype.taskQueue = new TaskQueue(opts)
+        }
     }
-    while (length--) {
-        task.children.push({
-            defer: syncFn, params: 'args'
-        })
-    }
-    return task
 }
-const taskQueue = new TaskQueue({ maxLen: 3 })
-const task = createFnList(10, "task1")
-const task2 = createFnList(2, "task2")
-const task3 = createFnList(4, "task3")
-const task4 = createFnList(11, "task4")
-taskQueue.push(task).then((res) => {
-    console.log(res)
-})
-taskQueue.push(task2).then((res) => {
-    console.log(res)
-})
-taskQueue.push(task3).then((res) => {
-    console.log(res)
-})
-taskQueue.push(task4).then((res) => {
-    console.log(res)
-})
 
-
-
-
+export default TaskQueue;
