@@ -1,5 +1,5 @@
 {
-  "name": "task-queue",
+  "name": "task-queue-lib",
   "version": "1.0.0",
   "description": "nodejs消息队列",
   "main": "./dist/common/index.js",
