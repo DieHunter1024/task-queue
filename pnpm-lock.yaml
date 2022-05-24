@@ -1,12 +1,12 @@
-lockfileVersion: 5.4
+lockfileVersion: 5.3
 
 specifiers:
   '@types/node': ^17.0.31
   babel-cli: ^6.26.0
-  event-message-center: ^1.0.14
+  event-message-center: ^1.0.15
 
 dependencies:
-  event-message-center: 1.0.14
+  event-message-center: 1.0.15
 
 devDependencies:
   '@types/node': 17.0.31
@@ -458,8 +458,8 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: true
 
-  /event-message-center/1.0.14:
-    resolution: {integrity: sha512-yepCX4kLAJtLLdnxMZXgUhOmvuM9N7nunLfVhxIo2Na4SrVq1Ak+g9Jl8GpNSxJ8rWEgcTleA3GExWojlKgpgQ==}
+  /event-message-center/1.0.15:
+    resolution: {integrity: sha512-jry52drznz9C0wbLQno1W4iPKWT0Hni/MtDcjHT/miUA+1MrDLDTw4OGT63+p2C5Yng7Png/sEiWdQHwFCeO+Q==}
     dev: false
 
   /expand-brackets/0.1.5:
