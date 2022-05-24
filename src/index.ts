@@ -67,7 +67,7 @@ export class TaskQueue implements ITaskQueue {
         } catch (error) {
             this.stateProxy("rejected")
             reject && typeof reject === "function" && reject(error)
-            return this.messageCenter.emit("run:error:handler", error)
+            return this.messageCenter.emit("run:error:handler", reject)
         }
     }
     /**

@@ -31,7 +31,7 @@ export type IQueueTemp = {
  */
 export type IQueueList = Array<IQueue>
 /**
- * 队列状态
+ * 队列状态 idle:空闲 pending:等待 fulfilled:完成 rejected:失败
  */
 export type IState = "idle" | "pending" | "fulfilled" | "rejected"
 /**
