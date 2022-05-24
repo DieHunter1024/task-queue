@@ -1,12 +1,12 @@
-lockfileVersion: 5.3
+lockfileVersion: 5.4
 
 specifiers:
   '@types/node': ^17.0.31
   babel-cli: ^6.26.0
-  event-message-center: ^1.0.12
+  event-message-center: ^1.0.14
 
 dependencies:
-  event-message-center: 1.0.12
+  event-message-center: 1.0.14
 
 devDependencies:
   '@types/node': 17.0.31
@@ -331,7 +331,7 @@ packages:
     dev: true
 
   /chokidar/1.7.0:
-    resolution: {integrity: sha1-eY5ol3gVHIB2tLNg5e3SjNortGg=}
+    resolution: {integrity: sha512-mk8fAWcRUOxY7btlLtitj3A45jOwSAxH4tOFOoEGbVsl6cL6pPMWUy7dwZ/canfj3QEdP6FHSnf/l1c6/WkzVg==}
     deprecated: Chokidar 2 will break on node v14+. Upgrade to chokidar 3 with 15x less dependencies.
     requiresBuild: true
     dependencies:
@@ -458,8 +458,8 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: true
 
-  /event-message-center/1.0.12:
-    resolution: {integrity: sha512-vAy7MkVGcrmRU6e001WRfV3tgFH0DBxUGL71Cx8UscyJv0GabGTVZLvbkVofRZUF9RZYCk5fHTcIbvCiCd9TJA==}
+  /event-message-center/1.0.14:
+    resolution: {integrity: sha512-yepCX4kLAJtLLdnxMZXgUhOmvuM9N7nunLfVhxIo2Na4SrVq1Ak+g9Jl8GpNSxJ8rWEgcTleA3GExWojlKgpgQ==}
     dev: false
 
   /expand-brackets/0.1.5:
