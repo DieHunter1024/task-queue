@@ -1,6 +1,6 @@
 {
   "name": "task-queue-lib",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "nodejs消息队列",
   "main": "./dist/common/index.js",
   "types": "./dist/common/index.d.ts",
@@ -30,7 +30,7 @@
   "author": "DieHunter",
   "license": "ISC",
   "dependencies": {
-    "event-message-center": "^1.0.12"
+    "event-message-center": "^1.0.14"
   },
   "devDependencies": {
     "@types/node": "^17.0.31",
