@@ -35,11 +35,17 @@ export type IQueueList = Array<IQueue>
  */
 export type IState = "idle" | "pending" | "fulfilled" | "rejected"
 /**
+ * 任务队列参数
+ */
+export type ITaskQueueProps = {
+    maxLen: number
+}
+/**
  * 任务队列
  */
 export type ITaskQueue = {
     readonly fix: string
-    readonly maxLen: number
+    props: ITaskQueueProps
     queueTemp: IQueueTemp
     queues: IQueueList
     state: IState

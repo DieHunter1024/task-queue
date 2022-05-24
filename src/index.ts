@@ -1,21 +1,21 @@
 import { decoratorMessageCenter, MessageCenter } from "event-message-center"
 import {
-    ITaskQueue, IQueueList, IQueues, IState, IQueueTemp
+    ITaskQueue, IQueueList, IQueues, IState, IQueueTemp, ITaskQueueProps
 } from "./type"
 @decoratorMessageCenter
 export class TaskQueue implements ITaskQueue {
     readonly fix: string = `@~&$`
     readonly messageCenter: MessageCenter
-    readonly maxLen: number
+    props: ITaskQueueProps
     queues: IQueueList
     queueTemp: IQueueTemp
     state: IState
     /**
-     * @param opts: {maxLen:并发峰值} 削峰
+     * @param props: {maxLen:并发峰值} 削峰
      */
-    constructor({ maxLen }) {
-        this.maxLen = maxLen
+    constructor(props: ITaskQueueProps) {
         this.clear()
+        props && this.defineProps(props, "props")
         this.init()
     }
     /**
@@ -26,6 +26,9 @@ export class TaskQueue implements ITaskQueue {
         this.messageCenter.on("run:success:handler", this.run)
         this.messageCenter.on("run:success:handler", this.finish)
         this.messageCenter.on("run:error:handler", this.run)
+    }
+    private defineProps = (props, key) => {
+        Object.defineProperty(this, key, { value: props })
     }
     /**
      * 进入队列
@@ -59,7 +62,7 @@ export class TaskQueue implements ITaskQueue {
         if (this.stateProxy() === 'pending') return void 0
         if (this.queues.length === 0) return this.stateProxy("idle")
         this.stateProxy("pending")
-        const queues = this.unshift(this.maxLen)
+        const queues = this.unshift(this.props?.maxLen ?? 10)
         try {
             const res = await Promise.all(queues.map(async i => await i.defer(i.params)))
             this.stateProxy("fulfilled")
@@ -76,6 +79,7 @@ export class TaskQueue implements ITaskQueue {
     clear = () => {
         this.queues = []
         this.queueTemp = {}
+        this.props = null
         this.stateProxy("idle")
         this.messageCenter.clear()
     }
@@ -145,10 +149,10 @@ export class TaskQueue implements ITaskQueue {
  * @param opts  同TaskQueue中constructor
  * @returns 混入类原型中
  */
-export const decoratorTaskQueue = (opts) => {
-    return (proto) => {
-        if (!proto.prototype.taskQueue) {
-            proto.prototype.taskQueue = new TaskQueue(opts)
+export const decoratorTaskQueue = (opts: ITaskQueueProps): ClassDecorator => {
+    return <TFunction extends Function>(target: TFunction) => {
+        if (!target.prototype.taskQueue) {
+            target.prototype.taskQueue = new TaskQueue(opts)
         }
     }
 }
