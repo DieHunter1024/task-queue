@@ -1,6 +1,6 @@
 {
   "name": "task-queue-lib",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "nodejs消息队列",
   "main": "./dist/common/index.js",
   "types": "./dist/common/index.d.ts",

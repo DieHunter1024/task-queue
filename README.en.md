@@ -40,7 +40,7 @@ Nodejs task queue is a solution for high concurrency peak shaving of requests, I
 
 
 
-<!-- Slice length maxlen -- >
+#####Slice length maxlen
 
 
 
@@ -48,7 +48,7 @@ const taskQueue = new TaskQueue({ maxLen: 10 });
 
 
 
-<!-- A queue -- >
+#####A queue
 
 const task = {
 
@@ -60,7 +60,7 @@ children: [],
 
 
 
-<!-- Push several functions in a single queue -- >
+#####Push several functions in a single queue
 
 task. children. push({
 
@@ -72,7 +72,7 @@ params: "args",
 
 
 
-<!-- Subsequent operations will be triggered after all functions in a queue are executed -- >
+#####Subsequent operations will be triggered after all functions in a queue are executed
 
 taskQueue. push(task). then((res) => {
 
@@ -82,12 +82,12 @@ console. log(res);
 
 
 
-<!-- Delete the first three asynchronous functions -- >
+#####Delete the first three asynchronous functions
 
 taskQueue. unshift(3)
 
 
 
-<!-- Initialize the current queue -- >
+#####Initialize the current queue
 
 taskQueue. clear()
