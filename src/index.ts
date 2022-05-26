@@ -26,6 +26,7 @@ export class TaskQueue implements ITaskQueue {
         this.messageCenter.on("run:success:handler", this.run)
         this.messageCenter.on("run:success:handler", this.finish)
         this.messageCenter.on("run:error:handler", this.run)
+        this.messageCenter.on("run:error:handler", this.finish)
     }
     private defineProps = (props, key) => {
         Object.defineProperty(this, key, { value: props })
@@ -39,7 +40,7 @@ export class TaskQueue implements ITaskQueue {
         this.checkHandler(queue)
         const { resolve, reject, promise } = this.defer()
         const queueName = this.fixStr(queue.name)
-        this.queues = this.queues.concat(queue.children.map(i => ({ ...i, name: queueName })))
+        this.queues = this.queues.concat(queue.children.map(defer => ({ defer, name: queueName })))
         this.queueTemp[queueName] = { ...queue, result: [] }
         this.messageCenter.emit("push:handler", reject)
         this.messageCenter.on(queueName, resolve)
@@ -58,19 +59,19 @@ export class TaskQueue implements ITaskQueue {
      * @param reject 异常函数
      * @returns void 0
      */
-    run = async (reject) => {
+    run = async ({ reject }) => {
         if (this.stateProxy() === 'pending') return void 0
         if (this.queues.length === 0) return this.stateProxy("idle")
         this.stateProxy("pending")
         const queues = this.unshift(this.props?.maxLen ?? 10)
         try {
-            const res = await Promise.all(queues.map(async i => await i.defer(i.params)))
+            const res = await Promise.all(queues.map(async i => await i.defer()))
             this.stateProxy("fulfilled")
             return this.messageCenter.emit("run:success:handler", { res, queues })
         } catch (error) {
             this.stateProxy("rejected")
             reject && typeof reject === "function" && reject(error)
-            return this.messageCenter.emit("run:error:handler", reject)
+            return this.messageCenter.emit("run:error:handler", { reject, error, queues })
         }
     }
     /**
@@ -87,11 +88,11 @@ export class TaskQueue implements ITaskQueue {
      * 处理每次队列执行完成后的数据
      * @param data { res, queues } 运行结束后的返回值及削峰后的初始队列，一一对应
      */
-    private finish = ({ res, queues }) => {
+    private finish = ({ res = [], queues, error }) => {
         const { queueTemp } = this
         queues.forEach((it, i) => {
             const item = queueTemp[it.name]
-            item?.result.push(res[i])
+            item?.result.push(res[i] ?? error)
             if (item?.result?.length === item?.children?.length) {
                 this.messageCenter.emit(it.name, item?.result)
                 queueTemp[it.name] = null
@@ -118,7 +119,7 @@ export class TaskQueue implements ITaskQueue {
         if (!(queue.children instanceof Array) || typeof queue !== "object") {
             throw new TypeError(`queue should be an object and queue.children should be an array`);
         }
-        const noFn = i => !i.defer || typeof i.defer !== "function"
+        const noFn = i => !i || typeof i !== "function"
         if (queue.children?.length === 0) throw new Error('queue.children.length can not be 0')
         if (queue.children?.find((i) => noFn(i))) throw new Error('queueList should have defer')
     }/**

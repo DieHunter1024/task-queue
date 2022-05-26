@@ -30,14 +30,13 @@ const task = {
 };
 
 ##### 单个队列中的函数，有几个就push几个
-task.children.push({
-    defer: syncFn,
-    params: "args",
-});
+task.children.push(syncFn.bind(null, "args"));
 
 ##### 某个队列中的函数全部执行完成后会触发后续操作
 taskQueue.push(task).then((res) => {
     console.log(res);
+}).catch((err) => {
+    console.log(err);
 });
 
 ##### 删除前三个异步函数

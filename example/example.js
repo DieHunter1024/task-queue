@@ -31,10 +31,7 @@ const createFnList = (length, name) => {
     children: [],
   };
   while (length--) {
-    task.children.push({
-      defer: syncFn,
-      params: "args",
-    });
+    task.children.push(syncFn.bind(null, "args"));
   }
   return task;
 };

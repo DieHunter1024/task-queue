@@ -6,7 +6,7 @@
  */
 export interface IQueue {
     defer: Function
-    params?: any
+    name?: string
 }
 /**
  * 队列参数
@@ -16,7 +16,7 @@ export interface IQueue {
  * 
  */
 export interface IQueues {
-    children: Array<IQueue>
+    children: Array<Function>
     name: string
     result?: any[]
 }

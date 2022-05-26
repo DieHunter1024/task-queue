@@ -62,22 +62,16 @@ children: [],
 
 #####Push several functions in a single queue
 
-task. children. push({
-
-defer: syncFn,
-
-params: "args",
-
-});
+task.children.push(syncFn.bind(null, "args"));
 
 
 
 #####Subsequent operations will be triggered after all functions in a queue are executed
 
-taskQueue. push(task). then((res) => {
-
-console. log(res);
-
+taskQueue.push(task).then((res) => {
+    console.log(res);
+}).catch((err) => {
+    console.log(err);
 });
 
 
