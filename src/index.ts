@@ -65,13 +65,10 @@ export class TaskQueue implements ITaskQueue {
         this.stateProxy("pending")
         const queues = this.unshift(this.props?.maxLen ?? 10)
         try {
-            const res = await Promise.all(queues.map(async i => await i.defer()))
-            this.stateProxy("fulfilled")
-            return this.messageCenter.emit("run:success:handler", { res, queues })
+            const res = await Promise.all(queues.map((item, i) => item.defer().catch(error => error)))
+            return this.handlerSuccess({ res, queues })
         } catch (error) {
-            this.stateProxy("rejected")
-            reject && typeof reject === "function" && reject(error)
-            return this.messageCenter.emit("run:error:handler", { reject, error, queues })
+            return this.handlerError({ reject, error, queues })
         }
     }
     /**
@@ -86,9 +83,9 @@ export class TaskQueue implements ITaskQueue {
     }
     /**
      * 处理每次队列执行完成后的数据
-     * @param data { res, queues } 运行结束后的返回值及削峰后的初始队列，一一对应
+     * @param data { res, queues, error } 运行结束后的返回值及削峰后的初始队列，一一对应
      */
-    private finish = ({ res = [], queues, error }) => {
+    private finish = ({ res = [], queues, error = 'err' }) => {
         const { queueTemp } = this
         queues.forEach((it, i) => {
             const item = queueTemp[it.name]
@@ -98,6 +95,26 @@ export class TaskQueue implements ITaskQueue {
                 queueTemp[it.name] = null
             }
         });
+    }
+    /**
+     * 单次队列执行成功
+     * @param data { res, queues }
+     * @returns 
+     */
+    private handlerSuccess = (data) => {
+        this.stateProxy("fulfilled")
+        return this.messageCenter.emit("run:success:handler", data)
+    }
+    /**
+     * 单次队列执行失败
+     * @param data { res, queues, error }
+     * @returns 
+     */
+    private handlerError = (data) => {
+        const { reject, error } = data
+        this.stateProxy("rejected")
+        reject && typeof reject === "function" && reject(error)
+        return this.messageCenter.emit("run:error:handler", data)
     }
     /**
      * 设置、获取当前队列的状态
